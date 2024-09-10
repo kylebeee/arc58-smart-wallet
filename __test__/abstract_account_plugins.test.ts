@@ -106,7 +106,7 @@ describe('Abstracted Subscription Program', () => {
     });
 
     test('Alice adds the app to the abstracted account', async () => {
-      await abstractedAccountClient.appClient.fundAppAccount({ amount: algokit.microAlgos(22100) });
+      await abstractedAccountClient.appClient.fundAppAccount({ amount: algokit.microAlgos(34900) });
       await abstractedAccountClient.arc58AddPlugin(
         {
           // Add the subscription plugin
@@ -114,7 +114,11 @@ describe('Abstracted Subscription Program', () => {
           // Set address to ZERO_ADDRESS so anyone can call it
           allowedCaller: ZERO_ADDRESS,
           // Set end to maxUint64 so it never expires
-          end: maxUint64,
+          lastValidRound: maxUint64,
+          // Set cooldown to 0 so it can always be called
+          cooldown: 0,
+          // Set adminPrivileges to false so it cant change the admin account
+          adminPrivileges: false,
         },
         { boxes }
       );
@@ -217,7 +221,7 @@ describe('Abstracted Subscription Program', () => {
 
       // Add opt-in plugin
       await abstractedAccountClient.arc58AddNamedPlugin(
-        { name: 'optIn', app: optInPluginID, allowedCaller: ZERO_ADDRESS, end: maxUint64 },
+        { name: 'optIn', app: optInPluginID, allowedCaller: ZERO_ADDRESS, lastValidRound: maxUint64, cooldown: 0, adminPrivileges: false },
         { boxes }
       );
     });
