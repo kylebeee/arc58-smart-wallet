@@ -38,7 +38,7 @@ export class AbstractedAccount extends Contract {
    * address-passkey-name : domain
    * we track this onchain so we can assist with 'sign-in from another device' functionality
    * as well as potential future uses like DAO based domain revocation
-   * if they max the name out at 32 its 2_500 + (400 * (64 + ?)) = min 27_200 given the shortest domain length is like 4 characters
+   * if they max the name out at 32 its 2_500 + (400 * (33 + ?)) = min 27_200 given the shortest domain length is like 4 characters
    */
   passkeys = BoxMap<Address, bytes>({ prefix: 'k' });
 
@@ -152,7 +152,7 @@ export class AbstractedAccount extends Contract {
    * @param addr The address to rekey to
    * @param flash Whether or not this should be a flash rekey. If true, the rekey back to the app address must done in the same txn group as this call
    */
-  arc58_rekeyTo(addr: Address, flash: boolean): void {
+  arc58_rekeyTo(addr: Address): void {
     verifyAppCallTxn(this.txn, { sender: this.admin.value });
 
     sendPayment({
@@ -162,7 +162,7 @@ export class AbstractedAccount extends Contract {
       note: 'rekeying abstracted account',
     });
 
-    if (flash) this.verifyRekeyToAbstractedAccount();
+    this.verifyRekeyToAbstractedAccount();
   }
 
   private pluginCallAllowed(app: AppID, caller: Address): boolean {
