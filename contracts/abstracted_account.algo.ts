@@ -20,6 +20,15 @@ export class AbstractedAccount extends Contract {
   plugins = BoxMap<PluginsKey, uint64>({ prefix: 'p' });
 
   /**
+   * Passkeys on the account and their corresponding domain names
+   * address-passkey-name : domain
+   * we track this onchain so we can assist with 'sign-in from another device' functionality
+   * as well as potential future uses like DAO based domain revocation
+   * if they max the name out at 32 its 2_500 + (400 * (64 + ?)) = min 27_200 given the shortest domain length is like 4 characters
+   */
+  passkeys = BoxMap<Address, bytes>({ prefix: 'k' });
+
+  /**
    * Plugins that have been given a name for discoverability
    */
   namedPlugins = BoxMap<bytes, PluginsKey>({ prefix: 'n' });
