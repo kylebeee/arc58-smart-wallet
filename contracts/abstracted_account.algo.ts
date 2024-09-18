@@ -26,6 +26,8 @@ export class AbstractedAccount extends Contract {
 
   version = GlobalStateKey<string>({ key: 'v' });
 
+  factoryApp = GlobalStateKey<AppID>({ key: 'f' })
+
   /** The admin of the abstracted account. This address can add plugins and initiate rekeys */
   admin = GlobalStateKey<Address>({ key: 'a' });
 
@@ -146,13 +148,14 @@ export class AbstractedAccount extends Contract {
     admin: Address,
     revocationApp: AppID
   ): void {
-    assert(admin !== controlledAddress);
+    assert(admin !== controlledAddress, "admin and controlled address cannot be the same");
+    assert(globals.callerApplicationID !== AppID.fromUint64(0), "this contract must be deployed from a factory")
 
     this.version.value = version;
+    this.factoryApp.value = globals.callerApplicationID
     this.admin.value = admin;
     this.revocationApp.value = revocationApp;
-    this.controlledAddress.value = controlledAddress === Address.zeroAddress
-      ? this.app.address : controlledAddress;
+    this.controlledAddress.value = controlledAddress === Address.zeroAddress ? this.app.address : controlledAddress;
   }
 
   updateApplication(version: string): void {
