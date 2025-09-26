@@ -1,0 +1,220 @@
+#pragma version 10
+#pragma typetrack false
+
+// @algorandfoundation/algorand-typescript/arc4/index.d.ts::Contract.approvalProgram() -> uint64:
+main:
+    intcblock 0 1
+    bytecblock "creator" "hash"
+    // contracts/plugins/recovery_plugin.algo.ts:5
+    // export class RecoveryPlugin extends Contract {
+    txn NumAppArgs
+    bz main_after_if_else@8
+    pushbytess 0xaa6ca940 0xb7e5164d // method "createApplication(uint64,byte[])void", method "recover(uint64,byte[],address)void"
+    txna ApplicationArgs 0
+    match main_createApplication_route@3 main_recover_route@4
+
+main_after_if_else@8:
+    // contracts/plugins/recovery_plugin.algo.ts:5
+    // export class RecoveryPlugin extends Contract {
+    intc_0 // 0
+    return
+
+main_recover_route@4:
+    // contracts/plugins/recovery_plugin.algo.ts:17
+    // recover(sender: arc4.UintN64, prehash: bytes, newAdmin: arc4.Address): void {
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // contracts/plugins/recovery_plugin.algo.ts:5
+    // export class RecoveryPlugin extends Contract {
+    txna ApplicationArgs 1
+    txna ApplicationArgs 2
+    extract 2 0
+    txna ApplicationArgs 3
+    // contracts/plugins/recovery_plugin.algo.ts:17
+    // recover(sender: arc4.UintN64, prehash: bytes, newAdmin: arc4.Address): void {
+    callsub recover
+    intc_1 // 1
+    return
+
+main_createApplication_route@3:
+    // contracts/plugins/recovery_plugin.algo.ts:11
+    // @abimethod({ onCreate: 'require' })
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    !
+    assert // can only call when creating
+    // contracts/plugins/recovery_plugin.algo.ts:5
+    // export class RecoveryPlugin extends Contract {
+    txna ApplicationArgs 1
+    txna ApplicationArgs 2
+    extract 2 0
+    // contracts/plugins/recovery_plugin.algo.ts:11
+    // @abimethod({ onCreate: 'require' })
+    callsub createApplication
+    intc_1 // 1
+    return
+
+
+// contracts/plugins/recovery_plugin.algo.ts::RecoveryPlugin.createApplication(creator: bytes, hash: bytes) -> void:
+createApplication:
+    // contracts/plugins/recovery_plugin.algo.ts:11-12
+    // @abimethod({ onCreate: 'require' })
+    // createApplication(creator: arc4.UintN64, hash: bytes): void {
+    proto 2 0
+    // contracts/plugins/recovery_plugin.algo.ts:7
+    // creator = GlobalState<arc4.UintN64>({ key: 'creator' })
+    bytec_0 // "creator"
+    // contracts/plugins/recovery_plugin.algo.ts:13
+    // this.creator.value = creator;
+    frame_dig -2
+    app_global_put
+    // contracts/plugins/recovery_plugin.algo.ts:9
+    // hash = GlobalState<bytes>({ key: 'hash' })
+    bytec_1 // "hash"
+    // contracts/plugins/recovery_plugin.algo.ts:14
+    // this.hash.value = hash;
+    frame_dig -1
+    app_global_put
+    retsub
+
+
+// contracts/plugins/recovery_plugin.algo.ts::RecoveryPlugin.recover(sender: bytes, prehash: bytes, newAdmin: bytes) -> void:
+recover:
+    // contracts/plugins/recovery_plugin.algo.ts:17
+    // recover(sender: arc4.UintN64, prehash: bytes, newAdmin: arc4.Address): void {
+    proto 3 0
+    // contracts/plugins/recovery_plugin.algo.ts:7
+    // creator = GlobalState<arc4.UintN64>({ key: 'creator' })
+    intc_0 // 0
+    bytec_0 // "creator"
+    app_global_get_ex
+    assert // check GlobalState exists
+    // contracts/plugins/recovery_plugin.algo.ts:19
+    // assert(this.creator.value === sender, 'sender mismatch');
+    frame_dig -3
+    ==
+    assert // sender mismatch
+    // contracts/plugins/recovery_plugin.algo.ts:20
+    // assert(sha256(sha256(prehash)) === this.hash.value, 'prehash mismatch');
+    frame_dig -2
+    sha256
+    sha256
+    // contracts/plugins/recovery_plugin.algo.ts:9
+    // hash = GlobalState<bytes>({ key: 'hash' })
+    intc_0 // 0
+    bytec_1 // "hash"
+    app_global_get_ex
+    assert // check GlobalState exists
+    // contracts/plugins/recovery_plugin.algo.ts:20
+    // assert(sha256(sha256(prehash)) === this.hash.value, 'prehash mismatch');
+    ==
+    assert // prehash mismatch
+    // contracts/plugins/recovery_plugin.algo.ts:22-29
+    // itxn.applicationCall({
+    //   appId: this.creator.value.native,
+    //   appArgs: [
+    //     methodSelector('arc58_pluginChangeAdmin(address)void'),
+    //     newAdmin,
+    //   ],
+    //   fee: 0
+    // }).submit();
+    itxn_begin
+    // contracts/plugins/recovery_plugin.algo.ts:7
+    // creator = GlobalState<arc4.UintN64>({ key: 'creator' })
+    intc_0 // 0
+    bytec_0 // "creator"
+    app_global_get_ex
+    assert // check GlobalState exists
+    // contracts/plugins/recovery_plugin.algo.ts:23
+    // appId: this.creator.value.native,
+    btoi
+    // contracts/plugins/recovery_plugin.algo.ts:25
+    // methodSelector('arc58_pluginChangeAdmin(address)void'),
+    pushbytes 0x147b6cd6 // method "arc58_pluginChangeAdmin(address)void"
+    itxn_field ApplicationArgs
+    frame_dig -1
+    itxn_field ApplicationArgs
+    itxn_field ApplicationID
+    // contracts/plugins/recovery_plugin.algo.ts:22-29
+    // itxn.applicationCall({
+    //   appId: this.creator.value.native,
+    //   appArgs: [
+    //     methodSelector('arc58_pluginChangeAdmin(address)void'),
+    //     newAdmin,
+    //   ],
+    //   fee: 0
+    // }).submit();
+    pushint 6 // 6
+    itxn_field TypeEnum
+    // contracts/plugins/recovery_plugin.algo.ts:28
+    // fee: 0
+    intc_0 // 0
+    itxn_field Fee
+    // contracts/plugins/recovery_plugin.algo.ts:22-29
+    // itxn.applicationCall({
+    //   appId: this.creator.value.native,
+    //   appArgs: [
+    //     methodSelector('arc58_pluginChangeAdmin(address)void'),
+    //     newAdmin,
+    //   ],
+    //   fee: 0
+    // }).submit();
+    itxn_submit
+    // contracts/plugins/recovery_plugin.algo.ts:7
+    // creator = GlobalState<arc4.UintN64>({ key: 'creator' })
+    intc_0 // 0
+    bytec_0 // "creator"
+    app_global_get_ex
+    assert // check GlobalState exists
+    // contracts/plugins/recovery_plugin.algo.ts:31
+    // const creatorAddress = Application(this.creator.value.native).address
+    btoi
+    app_params_get AppAddress
+    assert // application exists
+    // contracts/plugins/recovery_plugin.algo.ts:33-39
+    // itxn.payment({
+    //   sender: creatorAddress,
+    //   receiver: creatorAddress,
+    //   amount: 0,
+    //   fee: 0,
+    //   rekeyTo: creatorAddress
+    // }).submit();
+    itxn_begin
+    dup
+    itxn_field RekeyTo
+    // contracts/plugins/recovery_plugin.algo.ts:36
+    // amount: 0,
+    intc_0 // 0
+    itxn_field Amount
+    dup
+    itxn_field Receiver
+    itxn_field Sender
+    // contracts/plugins/recovery_plugin.algo.ts:33-39
+    // itxn.payment({
+    //   sender: creatorAddress,
+    //   receiver: creatorAddress,
+    //   amount: 0,
+    //   fee: 0,
+    //   rekeyTo: creatorAddress
+    // }).submit();
+    intc_1 // 1
+    itxn_field TypeEnum
+    // contracts/plugins/recovery_plugin.algo.ts:37
+    // fee: 0,
+    intc_0 // 0
+    itxn_field Fee
+    // contracts/plugins/recovery_plugin.algo.ts:33-39
+    // itxn.payment({
+    //   sender: creatorAddress,
+    //   receiver: creatorAddress,
+    //   amount: 0,
+    //   fee: 0,
+    //   rekeyTo: creatorAddress
+    // }).submit();
+    itxn_submit
+    retsub

@@ -4,6 +4,8 @@ import * as algokit from '@algorandfoundation/algokit-utils';
 import algosdk, { makeBasicAccountTransactionSigner } from 'algosdk';
 import { AbstractedAccountClient, AbstractedAccountFactory } from '../contracts/clients/AbstractedAccountClient';
 import { OptInPluginClient, OptInPluginFactory } from '../contracts/clients/OptInPluginClient';
+import { RecoveryPluginClient, RecoveryPluginFactory } from '../contracts/clients/RecoveryPluginClient';
+import crypto from 'crypto';
 
 const ZERO_ADDRESS = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ';
 algokit.Config.configure({ populateAppCallResources: true });
@@ -263,7 +265,7 @@ describe('ARC58 Plugin Permissions', () => {
     }
 
     // TODO: Parse this from src_map json
-    expect(error).toMatch('pc=853');
+    expect(error).toMatch('pc=869');
   });
   test('neither sender nor global plugin exists', async () => {
     let error = 'no error';
@@ -275,7 +277,7 @@ describe('ARC58 Plugin Permissions', () => {
     }
 
     // TODO: Parse this from src_map json
-    expect(error).toMatch('pc=853');
+    expect(error).toMatch('pc=869');
   });
 
   test('expired', async () => {
@@ -300,7 +302,7 @@ describe('ARC58 Plugin Permissions', () => {
     }
 
     // TODO: Parse this from src_map json
-    expect(error).toMatch('pc=853');
+    expect(error).toMatch('pc=869');
   });
 
   test('erroneous app call in sandwich', async () => {
@@ -378,6 +380,87 @@ describe('ARC58 Plugin Permissions', () => {
       error = e.message;
     }
 
-    expect(error).toMatch('pc=1075');
+    expect(error).toMatch('pc=1097');
   });
+
+  test('recovery plugin', async () => {
+    const { algorand } = fixture;
+
+    const recoveryPluginMinter = new RecoveryPluginFactory({
+      defaultSender: aliceEOA.addr,
+      defaultSigner: makeBasicAccountTransactionSigner(aliceEOA),
+      algorand
+    })
+
+    // double sha256 of a simple password
+    const secret: string = "simple_password_1234";
+    const h1 = crypto.createHash('sha256').update(secret, 'utf8').digest();
+    const h2 = crypto.createHash('sha256').update(h1).digest();
+
+    const recoveryMintResults = await recoveryPluginMinter.send.create.createApplication({
+      args: {
+        creator: BigInt(abstractedAccountClient.appId),
+        hash: h2,
+      }
+    });
+
+    const recoveryPluginClient = recoveryMintResults.appClient;
+
+    await abstractedAccountClient.send.arc58AddPlugin({
+      sender: aliceEOA.addr,
+      signer: makeBasicAccountTransactionSigner(aliceEOA),
+      args: {
+        app: recoveryPluginClient.appId,
+        allowedCaller: ZERO_ADDRESS,
+        cooldown: 0,
+        lastValidRound: MAX_UINT64,
+        adminPrivileges: true,
+      }
+    });
+
+    const newAdmin = await fixture.context.generateAccount({ initialFunds: (2).algos() });
+
+    const recoveryTxn = (
+      await (recoveryPluginClient
+        .createTransaction
+        .recover({
+          sender: caller.addr,
+          signer: makeBasicAccountTransactionSigner(caller),
+          args: {
+            sender: BigInt(abstractedAccountClient.appId),
+            prehash: Buffer.from(secret),
+            newAdmin: newAdmin.addr,
+          },
+          extraFee: (2_000).microAlgos()
+        }))
+    ).transactions[0];
+
+    await abstractedAccountClient
+      .newGroup()
+      .arc58RekeyToPlugin({
+        sender: caller.addr,
+        signer: makeBasicAccountTransactionSigner(caller),
+        args: { plugin: recoveryPluginClient.appId },
+        extraFee: (1000).microAlgos()
+      })
+      .addTransaction(recoveryTxn, makeBasicAccountTransactionSigner(caller)) // recover
+      .arc58VerifyAuthAddr({
+        sender: caller.addr,
+        signer: makeBasicAccountTransactionSigner(caller),
+        args: {}
+      })
+      // delete the plugin in the same group because the secret is revealed onchain
+      .arc58RemovePlugin({
+        sender: newAdmin.addr,
+        signer: newAdmin.signer,
+        args: {
+          app: recoveryPluginClient.appId,
+          allowedCaller: ZERO_ADDRESS
+        }
+      })
+      .send();
+
+    const currentAdmin = algosdk.encodeAddress((await abstractedAccountClient.state.global.admin()).asByteArray()!)
+    expect(currentAdmin).toBe(newAdmin.addr);
+  })
 });

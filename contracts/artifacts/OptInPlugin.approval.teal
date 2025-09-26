@@ -70,15 +70,21 @@ optInToAsset:
     pushbytes "c"
     app_global_get_ex
     pop
-    swap
-    // contracts/plugins/optin_plugin.algo.ts:17
+    // contracts/plugins/optin_plugin.algo.ts:12
+    // assert(mbrPayment.receiver === controlledAccount, 'receiver mismatch');
+    frame_dig -1
+    gtxns Receiver
+    dig 1
+    ==
+    assert // receiver mismatch
+    // contracts/plugins/optin_plugin.algo.ts:13
     // assert(mbrPayment.amount >= Global.assetOptInMinBalance, 'asset mismatch');
     frame_dig -1
     gtxns Amount
     global AssetOptInMinBalance
     >=
     assert // asset mismatch
-    // contracts/plugins/optin_plugin.algo.ts:19-28
+    // contracts/plugins/optin_plugin.algo.ts:15-24
     // itxn
     //   .assetTransfer({
     //     sender: controlledAccount,
@@ -90,25 +96,25 @@ optInToAsset:
     //   })
     //   .submit();
     itxn_begin
-    // contracts/plugins/optin_plugin.algo.ts:24
+    // contracts/plugins/optin_plugin.algo.ts:20
     // xferAsset: Asset(asset.native),
     frame_dig -2
     btoi
-    // contracts/plugins/optin_plugin.algo.ts:25
+    // contracts/plugins/optin_plugin.algo.ts:21
     // rekeyTo: Application(sender.native).address,
-    swap
+    uncover 2
     app_params_get AppAddress
     assert // application exists
     itxn_field RekeyTo
     itxn_field XferAsset
-    // contracts/plugins/optin_plugin.algo.ts:23
+    // contracts/plugins/optin_plugin.algo.ts:19
     // assetAmount: 0,
     intc_1 // 0
     itxn_field AssetAmount
     dup
     itxn_field AssetReceiver
     itxn_field Sender
-    // contracts/plugins/optin_plugin.algo.ts:19-27
+    // contracts/plugins/optin_plugin.algo.ts:15-23
     // itxn
     //   .assetTransfer({
     //     sender: controlledAccount,
@@ -120,11 +126,11 @@ optInToAsset:
     //   })
     pushint 4 // 4
     itxn_field TypeEnum
-    // contracts/plugins/optin_plugin.algo.ts:26
+    // contracts/plugins/optin_plugin.algo.ts:22
     // fee: 0,
     intc_1 // 0
     itxn_field Fee
-    // contracts/plugins/optin_plugin.algo.ts:19-28
+    // contracts/plugins/optin_plugin.algo.ts:15-24
     // itxn
     //   .assetTransfer({
     //     sender: controlledAccount,

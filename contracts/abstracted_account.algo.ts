@@ -1,4 +1,4 @@
-import { Contract, GlobalState, BoxMap, assert, arc4, uint64, Account, TransactionType, Application, abimethod, gtxn, itxn } from '@algorandfoundation/algorand-typescript'
+import { Contract, GlobalState, BoxMap, assert, arc4, uint64, Account, TransactionType, Application, abimethod, gtxn, itxn, Uint64 } from '@algorandfoundation/algorand-typescript'
 import { btoi, Global, len, Txn } from '@algorandfoundation/algorand-typescript/op'
 
 // type PluginsKey = arc4.StaticBytes<40>;
@@ -28,6 +28,9 @@ export class AbstractedAccount extends Contract {
 
   /** The address this app controls */
   controlledAddress = GlobalState<Account>({ key: 'c' });
+
+  /** the current plugin while active */
+  currentPlugin = GlobalState<PluginsKey>({ key: 'cp' });
 
   /**
    * Plugins that add functionality to the controlledAddress and the account that has permission to use it.
@@ -145,6 +148,7 @@ export class AbstractedAccount extends Contract {
 
     this.admin.value = admin.native;
     this.controlledAddress.value = controlledAddress.native === Global.zeroAddress ? Global.currentApplicationAddress : controlledAddress.native;
+    this.currentPlugin.value = new PluginsKey({ application: new arc4.UintN64(0), allowedCaller: new arc4.Address(Global.currentApplicationAddress) });
   }
 
   /**
@@ -161,20 +165,16 @@ export class AbstractedAccount extends Contract {
   /**
    * Attempt to change the admin via plugin.
    *
-   * @param plugin The app calling the plugin
-   * @param allowedCaller The address that triggered the plugin
    * @param newAdmin The new admin
    *
    */
-  arc58_pluginChangeAdmin(plugin: arc4.UintN64, allowedCaller: arc4.Address, newAdmin: arc4.Address): void {
-    // verifyTxn(this.txn, { sender: Application(plugin.native).address });
-    assert(Txn.sender === Application(plugin.native).address, 'Sender must be the plugin');
+  arc58_pluginChangeAdmin(newAdmin: arc4.Address): void {
+    const key = this.currentPlugin.value;
+    assert(Txn.sender === Application(key.application.native).address, 'Sender must be the plugin');
     assert(
-      this.controlledAddress.value.authAddress === Application(plugin.native).address,
+      this.controlledAddress.value.authAddress === Application(key.application.native).address,
       'This plugin is not in control of the account'
     );
-
-    const key = new PluginsKey({ application: plugin, allowedCaller: allowedCaller });
 
     const [p, exists] = this.plugins.maybe(key);
     assert(
@@ -199,6 +199,7 @@ export class AbstractedAccount extends Contract {
    */
   arc58_verifyAuthAddr(): void {
     assert(this.controlledAddress.value.authAddress === this.getAuthAddr());
+    this.currentPlugin.value = new PluginsKey({ application: new arc4.UintN64(0), allowedCaller: new arc4.Address(Global.currentApplicationAddress) });
   }
 
   /**
@@ -279,6 +280,8 @@ export class AbstractedAccount extends Contract {
       application: plugin,
       allowedCaller: new arc4.Address(globalAllowed ? Global.zeroAddress : Txn.sender)
     });
+
+    this.currentPlugin.value = key;
 
     const previousValue = this.plugins.get(key);
     const newValue = new PluginInfo({

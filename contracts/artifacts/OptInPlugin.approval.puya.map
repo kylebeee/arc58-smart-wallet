@@ -3,7 +3,7 @@
   "sources": [
     "/Users/kylebreeding/akita/contracts/joe-arc58/contracts/plugins/optin_plugin.algo.ts"
   ],
-  "mappings": ";;;;;AAEA;;AAAA;;;AAAA;;;;;;;;;;;;AAAA;;;AAAA;;;;;;AAAA;;AAKE;;AAAA;AAAA;AAAA;;AAAA;AALF;;;AAAA;;;AAAA;;AAAA;AAAA;AAAA;AAAA;;AAAA;AAAA;AAAA;AAKE;;;AAAA;;AAHC;;AAAA;AAAA;AAAA;;AAAA;AAAA;AAAA;;AAGD;;;AAC8E;;AAAA;AAA3C;AAA0D;;;AAA1D;AAAA;AAAA;AAQf;;AAAA;;AAAiB;;AAA5B;AAAP;AAEA;AAK2B;;AAAA;AACa;AAAA;;AAAA;;;;;AAFvB;;;;;;;;AAJjB;;;;AAOS;;;AAPT;",
+  "mappings": ";;;;;AAEA;;AAAA;;;AAAA;;;;;;;;;;;;AAAA;;;AAAA;;;;;;AAAA;;AAKE;;AAAA;AAAA;AAAA;;AAAA;AALF;;;AAAA;;;AAAA;;AAAA;AAAA;AAAA;AAAA;;AAAA;AAAA;AAAA;AAKE;;;AAAA;;AAHC;;AAAA;AAAA;AAAA;;AAAA;AAAA;AAAA;;AAGD;;;AAC8E;;AAAA;AAA3C;AAA0D;;;AAA1D;AAAA;AAGf;;AAAA;;AAAX;;AAAA;AAAP;AACkB;;AAAA;;AAAiB;;AAA5B;AAAP;AAEA;AAK2B;;AAAA;AACa;;AAAA;;AAAA;;;;;AAFvB;;;;;;;;AAJjB;;;;AAOS;;;AAPT;",
   "op_pc_offset": 0,
   "pc_events": {
     "1": {
@@ -393,13 +393,6 @@
       ]
     },
     "83": {
-      "op": "swap",
-      "stack_out": [
-        "controlledAccountBytes#0",
-        "tmp%0#0"
-      ]
-    },
-    "84": {
       "op": "frame_dig -1",
       "defined_out": [
         "controlledAccountBytes#0",
@@ -407,64 +400,121 @@
         "tmp%0#0"
       ],
       "stack_out": [
-        "controlledAccountBytes#0",
         "tmp%0#0",
+        "controlledAccountBytes#0",
         "mbrPayment#0 (copy)"
       ]
     },
-    "86": {
-      "op": "gtxns Amount",
+    "85": {
+      "op": "gtxns Receiver",
       "defined_out": [
         "controlledAccountBytes#0",
         "tmp%0#0",
         "tmp%1#0"
       ],
       "stack_out": [
-        "controlledAccountBytes#0",
         "tmp%0#0",
+        "controlledAccountBytes#0",
         "tmp%1#0"
       ]
     },
-    "88": {
-      "op": "global AssetOptInMinBalance",
+    "87": {
+      "op": "dig 1",
+      "defined_out": [
+        "controlledAccountBytes#0",
+        "controlledAccountBytes#0 (copy)",
+        "tmp%0#0",
+        "tmp%1#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "controlledAccountBytes#0",
+        "tmp%1#0",
+        "controlledAccountBytes#0 (copy)"
+      ]
+    },
+    "89": {
+      "op": "==",
       "defined_out": [
         "controlledAccountBytes#0",
         "tmp%0#0",
-        "tmp%1#0",
         "tmp%2#0"
       ],
       "stack_out": [
-        "controlledAccountBytes#0",
         "tmp%0#0",
-        "tmp%1#0",
+        "controlledAccountBytes#0",
         "tmp%2#0"
       ]
     },
     "90": {
-      "op": ">=",
+      "error": "receiver mismatch",
+      "op": "assert // receiver mismatch",
+      "stack_out": [
+        "tmp%0#0",
+        "controlledAccountBytes#0"
+      ]
+    },
+    "91": {
+      "op": "frame_dig -1",
+      "stack_out": [
+        "tmp%0#0",
+        "controlledAccountBytes#0",
+        "mbrPayment#0 (copy)"
+      ]
+    },
+    "93": {
+      "op": "gtxns Amount",
       "defined_out": [
         "controlledAccountBytes#0",
         "tmp%0#0",
         "tmp%3#0"
       ],
       "stack_out": [
-        "controlledAccountBytes#0",
         "tmp%0#0",
+        "controlledAccountBytes#0",
         "tmp%3#0"
       ]
     },
-    "91": {
+    "95": {
+      "op": "global AssetOptInMinBalance",
+      "defined_out": [
+        "controlledAccountBytes#0",
+        "tmp%0#0",
+        "tmp%3#0",
+        "tmp%4#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "controlledAccountBytes#0",
+        "tmp%3#0",
+        "tmp%4#0"
+      ]
+    },
+    "97": {
+      "op": ">=",
+      "defined_out": [
+        "controlledAccountBytes#0",
+        "tmp%0#0",
+        "tmp%5#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "controlledAccountBytes#0",
+        "tmp%5#0"
+      ]
+    },
+    "98": {
       "error": "asset mismatch",
       "op": "assert // asset mismatch",
       "stack_out": [
-        "controlledAccountBytes#0",
-        "tmp%0#0"
+        "tmp%0#0",
+        "controlledAccountBytes#0"
       ]
     },
-    "92": {
+    "99": {
       "op": "itxn_begin"
     },
-    "93": {
+    "100": {
       "op": "frame_dig -2",
       "defined_out": [
         "asset#0 (copy)",
@@ -472,12 +522,12 @@
         "tmp%0#0"
       ],
       "stack_out": [
-        "controlledAccountBytes#0",
         "tmp%0#0",
+        "controlledAccountBytes#0",
         "asset#0 (copy)"
       ]
     },
-    "95": {
+    "102": {
       "op": "btoi",
       "defined_out": [
         "controlledAccountBytes#0",
@@ -485,20 +535,20 @@
         "tmp%0#0"
       ],
       "stack_out": [
-        "controlledAccountBytes#0",
         "tmp%0#0",
+        "controlledAccountBytes#0",
         "inner_txn_params%0%%param_XferAsset_idx_0#0"
       ]
     },
-    "96": {
-      "op": "swap",
+    "103": {
+      "op": "uncover 2",
       "stack_out": [
         "controlledAccountBytes#0",
         "inner_txn_params%0%%param_XferAsset_idx_0#0",
         "tmp%0#0"
       ]
     },
-    "97": {
+    "105": {
       "op": "app_params_get AppAddress",
       "defined_out": [
         "check%0#0",
@@ -513,7 +563,7 @@
         "check%0#0"
       ]
     },
-    "99": {
+    "107": {
       "error": "application exists",
       "op": "assert // application exists",
       "stack_out": [
@@ -522,20 +572,20 @@
         "value%0#0"
       ]
     },
-    "100": {
+    "108": {
       "op": "itxn_field RekeyTo",
       "stack_out": [
         "controlledAccountBytes#0",
         "inner_txn_params%0%%param_XferAsset_idx_0#0"
       ]
     },
-    "102": {
+    "110": {
       "op": "itxn_field XferAsset",
       "stack_out": [
         "controlledAccountBytes#0"
       ]
     },
-    "104": {
+    "112": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -546,34 +596,30 @@
         "0"
       ]
     },
-    "105": {
+    "113": {
       "op": "itxn_field AssetAmount",
       "stack_out": [
         "controlledAccountBytes#0"
       ]
     },
-    "107": {
+    "115": {
       "op": "dup",
-      "defined_out": [
-        "controlledAccountBytes#0",
-        "controlledAccountBytes#0 (copy)"
-      ],
       "stack_out": [
         "controlledAccountBytes#0",
         "controlledAccountBytes#0 (copy)"
       ]
     },
-    "108": {
+    "116": {
       "op": "itxn_field AssetReceiver",
       "stack_out": [
         "controlledAccountBytes#0"
       ]
     },
-    "110": {
+    "118": {
       "op": "itxn_field Sender",
       "stack_out": []
     },
-    "112": {
+    "120": {
       "op": "pushint 4 // 4",
       "defined_out": [
         "4"
@@ -582,24 +628,24 @@
         "4"
       ]
     },
-    "114": {
+    "122": {
       "op": "itxn_field TypeEnum",
       "stack_out": []
     },
-    "116": {
+    "124": {
       "op": "intc_1 // 0",
       "stack_out": [
         "0"
       ]
     },
-    "117": {
+    "125": {
       "op": "itxn_field Fee",
       "stack_out": []
     },
-    "119": {
+    "127": {
       "op": "itxn_submit"
     },
-    "120": {
+    "128": {
       "retsub": true,
       "op": "retsub"
     }

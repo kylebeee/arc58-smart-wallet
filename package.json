@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@algorandfoundation/algokit-utils": "^7.1.0",
-    "@algorandfoundation/algorand-typescript": "^1.0.0-beta.20",
-    "@algorandfoundation/puya-ts": "^1.0.0-beta.37",
+    "@algorandfoundation/algorand-typescript": "1.0.0-beta.20",
+    "@algorandfoundation/puya-ts": "1.0.0-beta.37",
     "algosdk": "^2.9.0"
   },
   "devDependencies": {

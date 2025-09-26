@@ -8,12 +8,8 @@ export class OptInPlugin extends Contract {
   optInToAsset(sender: arc4.UintN64, asset: arc4.UintN64, mbrPayment: gtxn.PaymentTxn): void {
     const [controlledAccountBytes] = op.AppGlobal.getExBytes(Application(sender.native), Bytes('c'));
     const controlledAccount = Account(Bytes(controlledAccountBytes));
-    // verifyPayTxn(mbrPayment, {
-    //   receiver: controlledAccount,
-    //   amount: {
-    //     greaterThanEqualTo: globals.assetOptInMinBalance,
-    //   },
-    // });
+
+    assert(mbrPayment.receiver === controlledAccount, 'receiver mismatch');
     assert(mbrPayment.amount >= Global.assetOptInMinBalance, 'asset mismatch');
 
     itxn
