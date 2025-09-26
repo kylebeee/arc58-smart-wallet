@@ -268,5 +268,67 @@ describe('Abstracted Subscription Program', () => {
         .arc58VerifyAuthAddr()
         .send();
     });
+
+    test("Alice removes the named plugin", async () => {
+      await abstractedAccountClient.send.arc58RemoveNamedPlugin({
+        sender: aliceEOA.addr,
+        signer: makeBasicAccountTransactionSigner(aliceEOA),
+        args: {
+          name: 'optIn',
+        }
+      });
+
+      // Form a payment from bob to alice's abstracted account to cover the MBR
+      const mbrPayment = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        from: bob.addr,
+        to: aliceAbstractedAccount,
+        amount: 200_000,
+        suggestedParams,
+      });
+
+      // Form the group txn needed to call the opt-in plugin
+      const optInGroup = (
+        await (optInPluginClient
+          .createTransaction
+          .optInToAsset({
+            sender: bob.addr,
+            args: {
+              sender: abstractedAccountClient.appId,
+              asset,
+              mbrPayment
+            },
+            extraFee: (1_000).microAlgo()
+          }))
+      ).transactions;
+
+      let error = 'no error';
+      try {
+        // Compose the group needed to actually use the plugin
+        await abstractedAccountClient
+          .newGroup()
+          // Rekey to the opt-in plugin
+          .arc58RekeyToNamedPlugin({
+            sender: bob.addr,
+            signer: makeBasicAccountTransactionSigner(bob),
+            args: { name: 'optIn' },
+            extraFee: (1_000).microAlgo(),
+            boxReferences: boxes,
+            assetReferences: [asset],
+          })
+          // Add the mbr payment
+          .addTransaction(optInGroup[0], makeBasicAccountTransactionSigner(bob)) // mbrPayment
+          // Add the opt-in plugin call
+          .addTransaction(optInGroup[1], makeBasicAccountTransactionSigner(bob)) // optInToAsset
+          // Call verify auth addr to verify the abstracted account is rekeyed back to itself
+          .arc58VerifyAuthAddr()
+          .send();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (e: any) {
+        error = e.message;
+      }
+
+      // TODO: Parse this from src_map json
+      expect(error).toMatch('pc=1150');
+    });
   });
 });

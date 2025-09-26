@@ -4,7 +4,7 @@ import * as algokit from '@algorandfoundation/algokit-utils';
 import algosdk, { makeBasicAccountTransactionSigner } from 'algosdk';
 import { AbstractedAccountClient, AbstractedAccountFactory } from '../contracts/clients/AbstractedAccountClient';
 import { OptInPluginClient, OptInPluginFactory } from '../contracts/clients/OptInPluginClient';
-import { RecoveryPluginClient, RecoveryPluginFactory } from '../contracts/clients/RecoveryPluginClient';
+import { RecoveryPluginFactory } from '../contracts/clients/RecoveryPluginClient';
 import crypto from 'crypto';
 
 const ZERO_ADDRESS = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ';
@@ -462,5 +462,54 @@ describe('ARC58 Plugin Permissions', () => {
 
     const currentAdmin = algosdk.encodeAddress((await abstractedAccountClient.state.global.admin()).asByteArray()!)
     expect(currentAdmin).toBe(newAdmin.addr);
+
+    const badNewAdmin = await fixture.context.generateAccount({ initialFunds: (2).algos() });
+
+    const badRecoveryTxn = (
+      await (recoveryPluginClient
+        .createTransaction
+        .recover({
+          sender: caller.addr,
+          signer: makeBasicAccountTransactionSigner(caller),
+          args: {
+            sender: BigInt(abstractedAccountClient.appId),
+            prehash: Buffer.from(secret),
+            newAdmin: badNewAdmin.addr,
+          },
+          extraFee: (2_000).microAlgos()
+        }))
+    ).transactions[0];
+
+    let error = 'no error';
+    try {
+      await abstractedAccountClient
+        .newGroup()
+        .arc58RekeyToPlugin({
+          sender: caller.addr,
+          signer: makeBasicAccountTransactionSigner(caller),
+          args: { plugin: recoveryPluginClient.appId },
+          extraFee: (1000).microAlgos()
+        })
+        .addTransaction(badRecoveryTxn, makeBasicAccountTransactionSigner(caller)) // recover
+        .arc58VerifyAuthAddr({
+          sender: caller.addr,
+          signer: makeBasicAccountTransactionSigner(caller),
+          args: {}
+        })
+        // delete the plugin in the same group because the secret is revealed onchain
+        .arc58RemovePlugin({
+          sender: newAdmin.addr,
+          signer: newAdmin.signer,
+          args: {
+            app: recoveryPluginClient.appId,
+            allowedCaller: ZERO_ADDRESS
+          }
+        })
+        .send();
+    } catch (e: any) {
+      error = e.message;
+    }
+
+    expect(error).toMatch('pc=869');
   })
 });
