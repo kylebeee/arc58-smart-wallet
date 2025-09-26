@@ -15,5 +15,3 @@ ARC58 PR: https://github.com/algorandfoundation/ARCs/pull/269
 ## Tests
 
 Testing of both plugins can be found at [./\_\_test\_\_/abstract_account_plugins.test.ts](./__test__/abstract_account_plugins.test.ts)
-
-Not all functionality of the abstracted account has been tested yet.
